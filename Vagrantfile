@@ -1,12 +1,23 @@
 
 Vagrant.configure(2) do |config|
 
-  config.vm.box = "ubuntu/trusty64"
-  config.vm.network "forwarded_port", guest: 3838, host: 3838
-  config.vm.provider "virtualbox" do |vb|
-    vb.customize ["modifyvm", :id, "--memory", "2048"]
-    vb.customize ["modifyvm", :id, "--cpus", "2"]
-  end
+config.vm.provider :digital_ocean do |provider, override|
+	override.ssh.private_key_path = '~/.ssh/id_rsa'
+	override.vm.box = 'digital_ocean'
+	override.vm.box_url = "https://github.com/smdahlen/vagrant-digitalocean/raw/master/box/digital_ocean.box"
+
+	provider.token = ${DIGITAL_OCEAN_TOKEN_CHRIS}
+	provider.image = 'ubuntu-14-04-x64'
+	provider.region = 'nyc2'
+	provider.size = '512mb'
+	end
+
+config.vm.box = "ubuntu/trusty64"
+config.vm.network "forwarded_port", guest: 3838, host: 3838
+config.vm.provider "virtualbox" do |vb|
+vb.customize ["modifyvm", :id, "--memory", "2048"]
+vb.customize ["modifyvm", :id, "--cpus", "2"]
+end
 
 $script = <<BOOTSTRAP
 sudo apt-get update
@@ -25,5 +36,5 @@ rm *.deb
 sudo ln -s /vagrant/apps /srv/shiny-server
 BOOTSTRAP
 
-  config.vm.provision :shell, :inline => $script
+config.vm.provision :shell, :inline => $script
 end
